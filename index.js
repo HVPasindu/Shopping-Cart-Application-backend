@@ -7,7 +7,10 @@ const cors = require("cors");
 const createDatabase = require("./db/createDatabase");
 const sequelize = require("./db/sequelize");
 
-// Models and relationships load කරනවා
+const AppError = require("./utils/AppError");
+const errorMiddleware = require("./middleware/errorMiddleware");
+
+// Models and relationships loaded
 require("./models");
 
 const app = express();
@@ -16,9 +19,29 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Test route
 app.get("/", (req, res) => {
   res.send("Shopping Cart API running...");
 });
+
+// Example test error route
+app.get("/test-error", (req, res, next) => {
+  return next(new AppError("This is a test error", 400));
+});
+
+//in here add the routes
+
+
+
+
+// Wrong route handler
+app.use((req, res, next) => {
+  next(new AppError(`Route not found: ${req.originalUrl}`, 404));
+});
+
+// Global error handler 
+app.use(errorMiddleware);
+
 
 const PORT = process.env.PORT || 3000;
 
