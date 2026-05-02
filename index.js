@@ -10,10 +10,14 @@ const sequelize = require("./db/sequelize");
 const AppError = require("./utils/AppError");
 const errorMiddleware = require("./middleware/errorMiddleware");
 
+const authRoutes = require("./routes/authRoutes");
+
+
 // Models and relationships loaded
 require("./models");
 
 const app = express();
+
 
 app.use(cors());
 app.use(express.json());
@@ -30,7 +34,7 @@ app.get("/test-error", (req, res, next) => {
 });
 
 //in here add the routes
-
+app.use("/api/auth", authRoutes);
 
 
 
