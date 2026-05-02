@@ -11,6 +11,10 @@ const AppError = require("./utils/AppError");
 const errorMiddleware = require("./middleware/errorMiddleware");
 
 const authRoutes = require("./routes/authRoutes");
+const adminRoutes = require("./routes/adminRoutes");
+
+// const { protect } = require("./middleware/authMiddleware");
+// const { adminOnly } = require("./middleware/adminMiddleware");
 
 
 // Models and relationships loaded
@@ -33,8 +37,27 @@ app.get("/test-error", (req, res, next) => {
   return next(new AppError("This is a test error", 400));
 });
 
+//test for token
+// app.get("/api/test/protected", protect, (req, res) => {
+//   res.status(200).json({
+//     success: true,
+//     message: "Protected route access successful",
+//     user: req.user,
+//   });
+// });
+
+//test for admin 
+// app.get("/api/test/admin", protect, adminOnly, (req, res) => {
+//   res.status(200).json({
+//     success: true,
+//     message: "Admin route access successful",
+//     user: req.user,
+//   });
+// });
+
 //in here add the routes
 app.use("/api/auth", authRoutes);
+app.use("/api/admin", adminRoutes);
 
 
 
