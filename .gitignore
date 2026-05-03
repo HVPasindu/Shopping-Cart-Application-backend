@@ -2,3 +2,7 @@ node_modules/
 .env
 
 seedAdmin.js
+
+uploads/categories
+uploads/products
+uploads/profiles
