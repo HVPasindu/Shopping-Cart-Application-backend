@@ -15,6 +15,7 @@ const path = require("path");
 const authRoutes = require("./routes/authRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const categoryRoutes = require("./routes/categoryRoutes");
+const productRoutes = require("./routes/productRoutes");
 
 // const { protect } = require("./middleware/authMiddleware");
 // const { adminOnly } = require("./middleware/adminMiddleware");
@@ -64,6 +65,7 @@ app.get("/test-error", (req, res, next) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/categories", categoryRoutes);
+app.use("/api/products", productRoutes);
 
 
 
@@ -88,7 +90,7 @@ const startServer = async () => {
     console.log("Sequelize connected to MySQL successfully");
 
     // 3. Models  tables create/update 
-    await sequelize.sync({ alter: true });
+    await sequelize.sync();
     console.log("All tables checked/created successfully");
 
     // 4. Express server start 
