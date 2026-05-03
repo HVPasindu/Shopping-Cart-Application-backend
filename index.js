@@ -10,8 +10,11 @@ const sequelize = require("./db/sequelize");
 const AppError = require("./utils/AppError");
 const errorMiddleware = require("./middleware/errorMiddleware");
 
+const path = require("path");
+
 const authRoutes = require("./routes/authRoutes");
 const adminRoutes = require("./routes/adminRoutes");
+const categoryRoutes = require("./routes/categoryRoutes");
 
 // const { protect } = require("./middleware/authMiddleware");
 // const { adminOnly } = require("./middleware/adminMiddleware");
@@ -26,6 +29,8 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Test route
 app.get("/", (req, res) => {
@@ -58,6 +63,7 @@ app.get("/test-error", (req, res, next) => {
 //in here add the routes
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/categories", categoryRoutes);
 
 
 
