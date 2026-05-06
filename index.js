@@ -19,6 +19,7 @@ const productRoutes = require("./routes/productRoutes");
 const profileRoutes = require("./routes/profileRoutes");
 const cartRoutes = require("./routes/cartRoutes");
 const orderRoutes = require("./routes/orderRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 
 // const { protect } = require("./middleware/authMiddleware");
 // const { adminOnly } = require("./middleware/adminMiddleware");
@@ -72,6 +73,7 @@ app.use("/api/products", productRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 
 
