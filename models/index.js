@@ -10,6 +10,7 @@ const Order = require("./Order");
 const OrderItem = require("./OrderItem");
 const Payment = require("./Payment");
 const UserAuthProvider = require("./UserAuthProvider");
+const Notification = require("./Notification");
 
 // User 1 ---- 1 UserProfile
 User.hasOne(UserProfile, {
@@ -50,11 +51,37 @@ UserAuthProvider.belongsTo(User, {
   as: "user",
 });
 
+// User 1 ---- many Notifications
+User.hasMany(Notification, {
+  foreignKey: "user_id",
+  as: "notifications",
+  onDelete: "CASCADE",
+  onUpdate: "CASCADE",
+});
+
+Notification.belongsTo(User, {
+  foreignKey: "user_id",
+  as: "user",
+});
+
+// Category 1 ---- many Products
+// Category.hasMany(Product, {
+//   foreignKey: "category_id",
+//   as: "products",
+//   onDelete: "RESTRICT",
+//   onUpdate: "CASCADE",
+// });
+
+// Product.belongsTo(Category, {
+//   foreignKey: "category_id",
+//   as: "category",
+// });
+
 // Category 1 ---- many Products
 Category.hasMany(Product, {
   foreignKey: "category_id",
   as: "products",
-  onDelete: "RESTRICT",
+  onDelete: "CASCADE",
   onUpdate: "CASCADE",
 });
 
@@ -62,6 +89,7 @@ Product.belongsTo(Category, {
   foreignKey: "category_id",
   as: "category",
 });
+
 
 // Product 1 ---- many ProductImages
 Product.hasMany(ProductImage, {
@@ -103,10 +131,23 @@ CartItem.belongsTo(Cart, {
 });
 
 // Product 1 ---- many CartItems
+// Product.hasMany(CartItem, {
+//   foreignKey: "product_id",
+//   as: "cart_items",
+//   onDelete: "RESTRICT",
+//   onUpdate: "CASCADE",
+// });
+
+// CartItem.belongsTo(Product, {
+//   foreignKey: "product_id",
+//   as: "product",
+// });
+
+// Product 1 ---- many CartItems
 Product.hasMany(CartItem, {
   foreignKey: "product_id",
   as: "cart_items",
-  onDelete: "RESTRICT",
+  onDelete: "CASCADE",
   onUpdate: "CASCADE",
 });
 
@@ -155,10 +196,23 @@ OrderItem.belongsTo(Order, {
 });
 
 // Product 1 ---- many OrderItems
+// Product.hasMany(OrderItem, {
+//   foreignKey: "product_id",
+//   as: "order_items",
+//   onDelete: "RESTRICT",
+//   onUpdate: "CASCADE",
+// });
+
+// OrderItem.belongsTo(Product, {
+//   foreignKey: "product_id",
+//   as: "product",
+// });
+
+// Product 1 ---- many OrderItems
 Product.hasMany(OrderItem, {
   foreignKey: "product_id",
   as: "order_items",
-  onDelete: "RESTRICT",
+  onDelete: "SET NULL",
   onUpdate: "CASCADE",
 });
 
@@ -193,4 +247,5 @@ module.exports = {
   OrderItem,
   Payment,
   UserAuthProvider,
+  Notification,
 };

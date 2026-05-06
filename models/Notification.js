@@ -1,8 +1,8 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../db/sequelize");
 
-const OrderItem = sequelize.define(
-  "OrderItem",
+const Notification = sequelize.define(
+  "Notification",
   {
     id: {
       type: DataTypes.INTEGER,
@@ -10,42 +10,39 @@ const OrderItem = sequelize.define(
       primaryKey: true,
     },
 
-    order_id: {
+    user_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
     },
 
-    product_id: {
-      type: DataTypes.INTEGER,
-      allowNull:  true,
-    },
-
-    product_name: {
+    title: {
       type: DataTypes.STRING(150),
       allowNull: false,
     },
 
-    quantity: {
-      type: DataTypes.INTEGER,
+    message: {
+      type: DataTypes.TEXT,
       allowNull: false,
     },
 
-    unit_price: {
-      type: DataTypes.DECIMAL(10, 2),
+    type: {
+      type: DataTypes.ENUM("cart", "order", "system"),
       allowNull: false,
+      defaultValue: "system",
     },
 
-    subtotal: {
-      type: DataTypes.DECIMAL(10, 2),
+    is_read: {
+      type: DataTypes.BOOLEAN,
       allowNull: false,
+      defaultValue: false,
     },
   },
   {
-    tableName: "order_items",
+    tableName: "notifications",
     timestamps: true,
     updatedAt: false,
     underscored: true,
   }
 );
 
-module.exports = OrderItem;
+module.exports = Notification;
