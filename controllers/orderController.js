@@ -3,6 +3,11 @@ const { QueryTypes } = require("sequelize");
 const sequelize = require("../db/sequelize");
 const AppError = require("../utils/AppError");
 const catchAsync = require("../utils/catchAsync");
+const {
+  notifyActiveCartUsersForProduct,
+  notifyActiveCartUsersForCategory,
+} = require("../utils/notificationHelper");
+
 
 const CART_ABANDON_AFTER_DAYS = 7;
 
@@ -145,11 +150,11 @@ const getOrderSummary = catchAsync(async (req, res) => {
 
     item.main_image = image
       ? {
-          ...image,
-          image_url_full: image.image_url
-            ? `${req.protocol}://${req.get("host")}/${image.image_url}`
-            : null,
-        }
+        ...image,
+        image_url_full: image.image_url
+          ? `${req.protocol}://${req.get("host")}/${image.image_url}`
+          : null,
+      }
       : null;
   }
 
@@ -314,6 +319,17 @@ const confirmOrder = catchAsync(async (req, res) => {
         transaction,
       });
 
+      if (newStockQuantity === 0) {
+        await notifyActiveCartUsersForProduct({
+          productId: item.product_id,
+          title: "Product Out of Stock",
+          message: `${item.product_name} product එක දැන් out of stock නිසා available නැහැ. එය ඔබගේ cart එකේ තවම තියෙන නමුත් order කරන්න බැහැ.`,
+          excludeCartId: cart.id,
+          excludeUserId: userId,
+          transaction,
+        });
+      }
+
       const countActiveProductsQuery = `
         SELECT COUNT(*) AS active_product_count
         FROM products
@@ -334,18 +350,43 @@ const confirmOrder = catchAsync(async (req, res) => {
         activeProductCountResult[0].active_product_count
       );
 
+      // if (activeProductCount === 0) {
+      //   const updateCategoryStatusQuery = `
+      //     UPDATE categories
+      //     SET
+      //       status = 'inactive',
+      //       updated_at = NOW()
+      //     WHERE id = ?
+      //   `;
+
+      //   await sequelize.query(updateCategoryStatusQuery, {
+      //     replacements: [item.category_id],
+      //     type: QueryTypes.UPDATE,
+      //     transaction,
+      //   });
+      // }
+
       if (activeProductCount === 0) {
         const updateCategoryStatusQuery = `
-          UPDATE categories
-          SET
-            status = 'inactive',
-            updated_at = NOW()
-          WHERE id = ?
-        `;
+    UPDATE categories
+    SET
+      status = 'inactive',
+      updated_at = NOW()
+    WHERE id = ?
+  `;
 
         await sequelize.query(updateCategoryStatusQuery, {
           replacements: [item.category_id],
           type: QueryTypes.UPDATE,
+          transaction,
+        });
+
+        await notifyActiveCartUsersForCategory({
+          categoryId: item.category_id,
+          title: "Category Unavailable",
+          message: `Cart එකේ ඇති category එකක් දැන් available නැහැ. එම category එකේ cart items order කරන්න බැහැ.`,
+          excludeCartId: cart.id,
+          excludeUserId: userId,
           transaction,
         });
       }
@@ -584,6 +625,14 @@ const cancelMyOrder = catchAsync(async (req, res) => {
         transaction,
       });
 
+      await notifyActiveCartUsersForProduct({
+        productId: item.product_id,
+        title: "Product Available Again",
+        message: `${item.product_name} product එක ආපහු stock එකට එකතු වී available වෙලා තියෙනවා. ඔබගේ cart එක check කරන්න.`,
+        excludeUserId: userId,
+        transaction,
+      });
+
       const activateCategoryQuery = `
         UPDATE categories
         SET
@@ -597,6 +646,14 @@ const cancelMyOrder = catchAsync(async (req, res) => {
         type: QueryTypes.UPDATE,
         transaction,
       });
+
+      await notifyActiveCartUsersForCategory({
+  categoryId: product.category_id,
+  title: "Category Available Again",
+  message: `Cart එකේ ඇති category එකක් ආපහු available වෙලා තියෙනවා. ඔබගේ cart එක check කරන්න.`,
+  excludeUserId: userId,
+  transaction,
+});
     }
 
     const updateOrderStatusQuery = `

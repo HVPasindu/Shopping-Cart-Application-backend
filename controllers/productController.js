@@ -4,6 +4,9 @@ const sequelize = require("../db/sequelize");
 const AppError = require("../utils/AppError");
 const catchAsync = require("../utils/catchAsync");
 const deleteFile = require("../utils/deleteFile");
+const {
+  notifyActiveCartUsersForProduct,
+} = require("../utils/notificationHelper");
 
 // CREATE PRODUCT - ADMIN ONLY
 const createProduct = catchAsync(async (req, res) => {
@@ -683,44 +686,44 @@ const updateProduct = catchAsync(async (req, res) => {
   });
 
   if (req.files && req.files.length > 0) {
-  // 1. Old product images ටික DB එකෙන් ගන්නවා
-  const findOldImagesQuery = `
+    // 1. Old product images ටික DB එකෙන් ගන්නවා
+    const findOldImagesQuery = `
     SELECT *
     FROM product_images
     WHERE product_id = ?
   `;
 
-  const oldImages = await sequelize.query(findOldImagesQuery, {
-    replacements: [productId],
-    type: QueryTypes.SELECT,
-  });
+    const oldImages = await sequelize.query(findOldImagesQuery, {
+      replacements: [productId],
+      type: QueryTypes.SELECT,
+    });
 
-  // 2. Old image files uploads folder එකෙන් delete කරනවා
-  for (const oldImage of oldImages) {
-    if (oldImage.image_url) {
-      deleteFile(oldImage.image_url);
+    // 2. Old image files uploads folder එකෙන් delete කරනවා
+    for (const oldImage of oldImages) {
+      if (oldImage.image_url) {
+        deleteFile(oldImage.image_url);
+      }
     }
-  }
 
-  // 3. Old image records DB එකෙන් delete කරනවා
-  const deleteOldImagesQuery = `
+    // 3. Old image records DB එකෙන් delete කරනවා
+    const deleteOldImagesQuery = `
     DELETE FROM product_images
     WHERE product_id = ?
   `;
 
-  await sequelize.query(deleteOldImagesQuery, {
-    replacements: [productId],
-    type: QueryTypes.DELETE,
-  });
+    await sequelize.query(deleteOldImagesQuery, {
+      replacements: [productId],
+      type: QueryTypes.DELETE,
+    });
 
-  // 4. New images insert කරනවා
-  for (let i = 0; i < req.files.length; i++) {
-    const imagePath = req.files[i].path.replace(/\\/g, "/");
+    // 4. New images insert කරනවා
+    for (let i = 0; i < req.files.length; i++) {
+      const imagePath = req.files[i].path.replace(/\\/g, "/");
 
-    // New images වල පළවෙනි එක main image කරනවා
-    const isMain = i === 0;
+      // New images වල පළවෙනි එක main image කරනවා
+      const isMain = i === 0;
 
-    const insertProductImageQuery = `
+      const insertProductImageQuery = `
       INSERT INTO product_images
       (
         product_id,
@@ -731,12 +734,12 @@ const updateProduct = catchAsync(async (req, res) => {
       VALUES (?, ?, ?, NOW())
     `;
 
-    await sequelize.query(insertProductImageQuery, {
-      replacements: [productId, imagePath, isMain],
-      type: QueryTypes.INSERT,
-    });
+      await sequelize.query(insertProductImageQuery, {
+        replacements: [productId, imagePath, isMain],
+        type: QueryTypes.INSERT,
+      });
+    }
   }
-}
 
   const getUpdatedProductQuery = `
     SELECT
@@ -825,6 +828,23 @@ const updateProductStatus = catchAsync(async (req, res) => {
 
   if (!product) {
     throw new AppError("Product not found", 404);
+  }
+
+
+  if (status === "inactive" && product.status !== "inactive") {
+    await notifyActiveCartUsersForProduct({
+      productId,
+      title: "Product Unavailable",
+      message: `${product.name} product එක admin විසින් inactive කර ඇත. එය ඔබගේ cart එකේ තවම තියෙන නමුත් order කරන්න බැහැ.`,
+    });
+  }
+
+  if (status === "active" && product.status !== "active") {
+    await notifyActiveCartUsersForProduct({
+      productId,
+      title: "Product Available Again",
+      message: `${product.name} product එක ආපහු active කර ඇත. ඔබගේ cart එක check කරන්න.`,
+    });
   }
 
   const updateStatusQuery = `

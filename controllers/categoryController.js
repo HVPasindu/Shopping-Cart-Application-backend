@@ -4,6 +4,9 @@ const sequelize = require("../db/sequelize");
 const AppError = require("../utils/AppError");
 const catchAsync = require("../utils/catchAsync");
 const deleteFile = require("../utils/deleteFile");
+const {
+  notifyActiveCartUsersForCategory,
+} = require("../utils/notificationHelper");
 
 // CREATE CATEGORY - ADMIN ONLY
 const createCategory = catchAsync(async (req, res) => {
@@ -418,6 +421,22 @@ const updateCategoryStatus = catchAsync(async (req, res) => {
 
   if (!category) {
     throw new AppError("Category not found", 404);
+  }
+
+  if (status === "inactive" && category.status !== "inactive") {
+    await notifyActiveCartUsersForCategory({
+      categoryId,
+      title: "Category Unavailable",
+      message: `${category.name} category එක admin විසින් inactive කර ඇත. එම category එකේ cart items order කරන්න බැහැ.`,
+    });
+  }
+
+  if (status === "active" && category.status !== "active") {
+    await notifyActiveCartUsersForCategory({
+      categoryId,
+      title: "Category Available Again",
+      message: `${category.name} category එක ආපහු active කර ඇත. ඔබගේ cart එක check කරන්න.`,
+    });
   }
 
   const updateStatusQuery = `
