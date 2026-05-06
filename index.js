@@ -20,6 +20,7 @@ const profileRoutes = require("./routes/profileRoutes");
 const cartRoutes = require("./routes/cartRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const adminOrderRoutes = require("./routes/adminOrderRoutes");
 
 // const { protect } = require("./middleware/authMiddleware");
 // const { adminOnly } = require("./middleware/adminMiddleware");
@@ -74,7 +75,7 @@ app.use("/api/profile", profileRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/notifications", notificationRoutes);
-
+app.use("/api/admin/orders", adminOrderRoutes);
 
 
 // Wrong route handler
